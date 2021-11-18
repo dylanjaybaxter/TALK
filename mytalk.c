@@ -16,6 +16,10 @@ Description: This file contains main functionality f
 
 /*Others*/
 #define LINE_LENGTH 256
+#define DEBUG 1
+
+/*Prototypes*/
+init_hint(struct addrinfo* hint);
 
 int int main(int argc, char const *argv[]) {
     /*Parse options*/
@@ -26,7 +30,7 @@ int int main(int argc, char const *argv[]) {
     struct addrinfo* infoptr;
     struct addrinfo* curr;
     struct addrinfo hint;
-    struct addrinfo sa;
+    struct addrinfo_in sa;
     init_hint(&hint);
     hint.ai_family = AF_INET;
 
@@ -59,11 +63,14 @@ int int main(int argc, char const *argv[]) {
           optMask = optMask | NOWNDW;
       }
     }
-    
+
     argRemain = optInd - argc;
 
     /*If hostname is included, act as client*/
     if(argRemain == 2){
+        if(DEBUG){
+            printf("Acting as client\n");
+        }
         /*Look up peer address*/
         if( -1 == getaddrinfo(argv[optInd], argv[opInd+1], &hint, &infoptr)){
             return -1;
@@ -71,6 +78,9 @@ int int main(int argc, char const *argv[]) {
         /*Create socket and connect to server*/
         curr = infoptr
         while(curr != NULL){
+            if(DEBUG){
+                printf("Extablishing socket\n");
+            }
             sock = socket(
                 curr->ai_family,
                 curr->ai_socktype,
@@ -79,6 +89,9 @@ int int main(int argc, char const *argv[]) {
                 /*Error*/
                 perror("Socket");
                 exit(EXIT_FAILURE);
+            }
+            if(DEBUG){
+                printf("Connecting socket\n");
             }
             if(-1 != connect(sock,curr->ai_addr, curr->ai_addrlen)){
                 fds[1].fd = sock;
@@ -97,8 +110,14 @@ int int main(int argc, char const *argv[]) {
 
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
+            if(DEBUG){
+                printf("Polling\n");
+            }
             poll(fds,2,-1);
             if(fds[0].revents & POLLIN){
+                if(DEBUG){
+                    printf("User input detected\n");
+                }
                 update_input_buffer();
                 if(has_whole_line()){
                     if(-1 == read_from_input(inBuf, LINE_LENGTH)){
@@ -109,6 +128,9 @@ int int main(int argc, char const *argv[]) {
                 }
             }
             if(fds[1].revents & POLLIN){
+                if(DEBUG){
+                    printf("Incoming message detected\n");
+                }
                 if(numRead = recieve(sock, inBuf, LINE_LENGTH, 0)){
                     if(-1 == write_to_output(inBuf, numRead)){
                         perror("Write to buffer");
@@ -117,7 +139,9 @@ int int main(int argc, char const *argv[]) {
                 }
             }
         }
-
+        if(DEBUG){
+            printf("Closing\n");
+        }
         /*Stop windowing*/
         stop_windowing();
 
@@ -127,6 +151,9 @@ int int main(int argc, char const *argv[]) {
 
     /*If not, act as server*/
     else if(argRemain == 1){
+        if(DEBUG){
+            printf("Acting as server\n");
+        }
         /*Create a socket*/
         if(-1==(sock = socket(AF_INET, SOCK_STREAM, 0)){
             perror("Server Socket");
@@ -139,9 +166,15 @@ int int main(int argc, char const *argv[]) {
         sa.sin_port = htons(argv[optInd]);
         sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
+        if(DEBUG){
+            printf("Binding...\n");
+        }
         bind(sock, (struct sockaddr*)&sa, sizeof(sa));
 
         /*Wait for Connection*/
+        if(DEBUG){
+            printf("Listening...\n");
+        }
         listen(sock, DEFAULT_BACKLOG);
 
         /*Accept connection*/
@@ -149,8 +182,14 @@ int int main(int argc, char const *argv[]) {
 
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
+            if(DEBUG){
+                printf("Polling...\n");
+            }
             poll(fds,2,-1);
             if(fds[0].revents & POLLIN){
+                if(DEBUG){
+                    printf("From user\n");
+                }
                 update_input_buffer();
                 if(has_whole_line()){
                     if(-1 == read_from_input(inBuf, LINE_LENGTH)){
@@ -161,6 +200,9 @@ int int main(int argc, char const *argv[]) {
                 }
             }
             if(fds[1].revents & POLLIN){
+                if(DEBUG){
+                    printf("From Connection\n");
+                }
                 if(numRead = recieve(sock, inBuf, LINE_LENGTH, 0)){
                     if(-1 == write_to_output(inBuf, numRead)){
                         perror("Write to buffer");
@@ -169,7 +211,9 @@ int int main(int argc, char const *argv[]) {
                 }
             }
         }
-
+        if(DEBUG){
+            printf("Closing...\n");
+        }
         /*Close sockets*/
         close(sock);
     }
@@ -178,4 +222,16 @@ int int main(int argc, char const *argv[]) {
         /*Error!*/
     }
     return 0;
+}
+
+
+init_hint(struct addrinfo* hint){
+    hint->ai_flags = 0;
+    hint->ai_family = AF_INET;
+    hint->ai_socktype = 0;
+    hint->ai_protocol = 0;
+    hint->ai_addrlen = 0;
+    hint->ai_addr = NULL;
+    hint->ai_canonname = NULL;
+    hint->ai.next = NULL;
 }
