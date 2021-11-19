@@ -98,7 +98,10 @@ int main(int argc, char* const argv[]) {
         }
         /*Create socket and connect to server*/
         curr = infoptr;
-        sock = socket(AF_INET, SOCK_STREAM, 0);
+        if(-1 == (sock = socket(AF_INET, SOCK_STREAM, 0)){
+            perror("Socket Creation");
+            exit(EXIT_FAILURE);
+        }
 
         while(curr != NULL){
             if(DEBUG){
@@ -131,7 +134,10 @@ int main(int argc, char* const argv[]) {
                 fprint_to_output("(client)Polling\n");
             }
             /*Poll for changes in stdin or socket*/
-            poll(fds,2,-1);
+            if((-1 == poll(fds,2,-1))){
+                perror("Polling");
+                exit(EXIT_FAILURE);
+            }
 
             /*If stdin has changed*/
             if((fds[LOCAL].revents & POLLIN)){
@@ -227,7 +233,10 @@ int main(int argc, char* const argv[]) {
         if(DEBUG){
             printf("Listening...\n");
         }
-        listen(lsock, DEFAULT_BACKLOG);
+        if(-1==listen(lsock, DEFAULT_BACKLOG)){
+            perror("listening");
+            exit(EXIT_FAILURE);
+        }
 
         /*Accept connection*/
         if(DEBUG){
@@ -257,7 +266,10 @@ int main(int argc, char* const argv[]) {
                 printf("Polling...\n");
             }
             /*Poll socket and stdin*/
-            poll(fds,2,-1);
+            if((-1 == poll(fds,2,-1))){
+                perror("Polling");
+                exit(EXIT_FAILURE);
+            }
 
             /*If user types*/
             if(fds[LOCAL].revents & POLLIN){
