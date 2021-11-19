@@ -31,6 +31,15 @@ Description: This file contains main functionality f
 
 /*Prototypes*/
 void init_hint(struct addrinfo* hint);
+void start_windowing(void);
+void stop_windowing(void);
+int read_from_input(char* buf, size_t len);
+int write_to_output(const char* buf, size_t len);
+int fprint_to_output(const char *fmt, ...);
+void update_input_buffer(void);
+int has_whole_line(void);
+int has_hit_eof(void);
+int set_verbosity(int level);
 
 int main(int argc, char* const argv[]) {
     /*Parse options*/
@@ -47,7 +56,7 @@ int main(int argc, char* const argv[]) {
     struct addrinfo* curr;
     struct addrinfo hint;
     struct sockaddr_in sa, lsinfo, sinfo;
-    char locAdd[INET_ADDRSTRLEN], remAdd[INET_ADDRSTRLEN];
+    /*char locAdd[INET_ADDRSTRLEN], remAdd[INET_ADDRSTRLEN];*/
     init_hint(&hint);
     hint.ai_family = AF_INET;
 
