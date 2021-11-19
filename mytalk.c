@@ -188,7 +188,7 @@ int main(int argc, char* const argv[]) {
                         fprint_to_output("(client)Sending...\n");
                     }
                     /*Send packet*/
-                    if(-1 == send(sock, inBuf, LINE_LENGTH, 0)){
+                    if(-1 == send(sock, inBuf, numRead, 0)){
                         stop_windowing();
                         perror("Sending");
                         exit(EXIT_FAILURE);
