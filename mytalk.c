@@ -176,7 +176,7 @@ int main(int argc, char* const argv[]) {
                 /*If end of line, send to server*/
                 if(has_whole_line()){
                     /*Clear the buffer*/
-                    memset(inBuf,0, LINE_LENGTH);
+                    memset(inBuf,'\0', LINE_LENGTH);
                     /*Read from the buffer*/
                     if((0 < read_from_input(inBuf, LINE_LENGTH))){
                         stop_windowing();
@@ -205,7 +205,7 @@ int main(int argc, char* const argv[]) {
                     fprint_to_output("Recieving on sock %d inbuf %s", sock);
                 }
                 /*Clear buffer*/
-                memset(inBuf,0, LINE_LENGTH);
+                memset(inBuf,'\0', LINE_LENGTH);
                 /*Read from socket*/
                 if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
                     inBuf[numRead] = '\0';
@@ -324,12 +324,12 @@ int main(int argc, char* const argv[]) {
                 /*If whole line, write message*/
                 if(has_whole_line()){
                     /*Read the line from the buffer*/
-                    if(-1 == read_from_input(inBuf, LINE_LENGTH)){
+                    if(-1 == (numRead = read_from_input(inBuf, LINE_LENGTH))){
                         perror("Read from Terminal");
                         exit(EXIT_FAILURE);
                     }
                     /*Send the read line*/
-                    if(-1 == send(sock, inBuf, LINE_LENGTH, 0)){
+                    if(-1 == send(sock, inBuf, numRead, 0)){
                         perror("Send");
                         exit(EXIT_FAILURE);
                     }
