@@ -84,6 +84,7 @@ int main(int argc, char* const argv[]) {
 
     argRemain = argc-optind;
     if(DEBUG){
+        perror("Just checking");
         printf("argRemain: %d\n", argRemain);
         printf("Options: %d\n", optMask);
     }
@@ -105,6 +106,7 @@ int main(int argc, char* const argv[]) {
 
         while(curr != NULL){
             if(DEBUG){
+                perror("Just checking");
                 printf("Connecting socket\n");
             }
             if(-1 != connect(sock,curr->ai_addr, curr->ai_addrlen)){
