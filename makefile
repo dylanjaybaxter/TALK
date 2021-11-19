@@ -1,12 +1,12 @@
 CC = gcc
-CFLAGS = -pedantic -Wall -g
+CFLAGS = -Wall -g
 LD = gcc
 LDFLAGS = -g
 
 all: ftalk ftalk.o
 
 ftalk: ftalk.o
-	$(LD) $(LDFLAGS) -L ~pn-cs357/Given/Talk/lib -o ftalk ftalk.o -ltalk \
+	$(CC) $(CFLAGS) -L ~pn-cs357/Given/Talk/lib64 -o ftalk ftalk.o -ltalk \
 	-l ncurses
 
 ftalk.o: ftalk.c
