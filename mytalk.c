@@ -150,14 +150,14 @@ int main(int argc, char* const argv[]) {
             }
             if(fds[SOCK_FD].revents & POLLIN){
                 if(DEBUG){
-                    printf("(client)Incoming message detected\n");
-                    printf("Recieving on sock %d inbuf %s", sock);
+                    fprint_to_output("(client)Incoming message detected\n");
+                    fprint_to_output("Recieving on sock %d inbuf %s", sock);
                 }
                 memset(inBuf,0, LINE_LENGTH);
-                if(-1 != (numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
+                if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
                     if(DEBUG){
-                        printf("(client)Recieved message of length %d\n", numRead);
-                        printf("%s\n", inBuf);
+                        fprint_to_output("(client)Recieved message of length %d\n", numRead);
+                        fprint_to_output("%s\n", inBuf);
                     }
                     if(-1 == write_to_output(inBuf, numRead)){
                         perror("(client)Write to buffer");
@@ -211,6 +211,9 @@ int main(int argc, char* const argv[]) {
         len = sizeof(sa);
         accept(sock, (struct sockaddr*)&sa, &len);
 
+        /*Start windowing*/
+        start_windowing();
+
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
             if(DEBUG){
@@ -245,6 +248,9 @@ int main(int argc, char* const argv[]) {
         if(DEBUG){
             printf("Closing...\n");
         }
+        /*Stop Windowing*/
+        stop_windowing();
+
         /*Close sockets*/
         close(sock);
     }
