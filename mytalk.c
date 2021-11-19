@@ -139,6 +139,7 @@ int main(int argc, char* const argv[]) {
                 if(has_whole_line()){
                     memset(inBuf,0, LINE_LENGTH);
                     if((-1 == read_from_input(inBuf, LINE_LENGTH))){
+                        stop_windowing();
                         perror("(client)Read from Terminal");
                         exit(EXIT_FAILURE);
                     }
@@ -160,11 +161,14 @@ int main(int argc, char* const argv[]) {
                         fprint_to_output("%s\n", inBuf);
                     }
                     if(-1 == write_to_output(inBuf, numRead)){
+                        stop_windowing();
                         perror("(client)Write to buffer");
                         exit(EXIT_FAILURE);
                     }
                 }else{
+                    stop_windowing();
                     perror("recieve:");
+                    exit(EXIT_FAILURE);
                 }
             }
         }
