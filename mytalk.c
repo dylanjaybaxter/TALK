@@ -112,7 +112,7 @@ int main(int argc, char* const argv[]) {
                 fds[SOCK_FD].fd = sock;
                 printf("Connection Established\n");
                 break;
-            }else
+            }else{
                 perror("Conection");
                 close(sock);
             }
