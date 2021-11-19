@@ -99,7 +99,7 @@ int main(int argc, char* const argv[]) {
             if(DEBUG){
                 printf("Extablishing socket\n");
             }
-            sock = socket(curr->ai_family, curr->ai_protocol,0);
+            sock = socket(curr->ai_family,SOCK_STREAM,curr->ai_protocol);
             if(sock == -1){
                 /*Error*/
                 perror("Socket");
@@ -308,8 +308,8 @@ int main(int argc, char* const argv[]) {
  void init_hint(struct addrinfo* hint){
     hint->ai_flags = 0;
     hint->ai_family = AF_INET;
-    hint->ai_socktype = 0;
-    hint->ai_protocol = SOCK_STREAM;
+    hint->ai_socktype = SOCK_STREAM;
+    hint->ai_protocol = 0;
     hint->ai_addrlen = 0;
     hint->ai_addr = NULL;
     hint->ai_canonname = NULL;
