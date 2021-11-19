@@ -132,7 +132,7 @@ int main(int argc, char* const argv[]) {
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
             if(DEBUG){
-                perror("Error check");
+                perror("Error 1");
                 fprint_to_output("(client)Polling\n");
             }
             poll(fds,2,-1);
@@ -176,6 +176,7 @@ int main(int argc, char* const argv[]) {
                     }
                 }else{
                     stop_windowing();
+                    fprintf("Sock = %d", sock);
                     perror("recieve:");
                     exit(EXIT_FAILURE);
                 }
