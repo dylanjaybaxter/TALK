@@ -26,8 +26,8 @@ Description: This file contains main functionality f
 /*Others*/
 #define LINE_LENGTH 256
 #define DEBUG 1
-#define STDIN_FD 0
-#define SOCK_FD 1
+#define LOCAL 0
+#define REMOTE 1
 
 /*Prototypes*/
 void init_hint(struct addrinfo* hint);
@@ -38,6 +38,7 @@ int main(int argc, char* const argv[]) {
     uint8_t optMask = 0;
     int opt;
     int sock;
+    int lsock;
     int argRemain;
     int port;
     char* end;
@@ -45,7 +46,8 @@ int main(int argc, char* const argv[]) {
     struct addrinfo* infoptr;
     struct addrinfo* curr;
     struct addrinfo hint;
-    struct sockaddr_in sa;
+    struct sockaddr_in sa, lsinfo, sinfo;
+    char locAdd[INET_ADDRSTRLEN], remAdd[INET_ADDRSTRLEN];
     init_hint(&hint);
     hint.ai_family = AF_INET;
 
@@ -55,13 +57,13 @@ int main(int argc, char* const argv[]) {
     /*Polling*/
     struct pollfd fds[2];
     /*Set stdin poll*/
-    fds[STDIN_FD].fd = 0;
-    fds[STDIN_FD].events = POLLIN;
-    fds[STDIN_FD].revents = 0;
+    fds[LOCAL].fd = 0;
+    fds[LOCAL].events = POLLIN;
+    fds[LOCAL].revents = 0;
 
     /*Set socket poll*/
-    fds[SOCK_FD].events = POLLIN;
-    fds[SOCK_FD].revents = 0;
+    fds[REMOTE].events = POLLIN;
+    fds[REMOTE].revents = 0;
 
     /*Search for option -n and assign k if it exsists*/
     while((opt = getopt(argc, argv,"vaN")) != -1){
@@ -96,21 +98,14 @@ int main(int argc, char* const argv[]) {
         }
         /*Create socket and connect to server*/
         curr = infoptr;
+        sock = socket(AF_INET, SOCK_STREAM, 0);
+
         while(curr != NULL){
-            if(DEBUG){
-                printf("Extablishing socket\n");
-            }
-            sock = socket(curr->ai_family,curr->ai_socktype,curr->ai_protocol);
-            if(sock == -1){
-                /*Error*/
-                perror("Socket");
-                exit(EXIT_FAILURE);
-            }
             if(DEBUG){
                 printf("Connecting socket\n");
             }
             if(-1 != connect(sock,curr->ai_addr, curr->ai_addrlen)){
-                fds[SOCK_FD].fd = sock;
+                fds[REMOTE].fd = sock;
                 printf("Connection Established\n");
                 break;
             }else{
@@ -137,8 +132,9 @@ int main(int argc, char* const argv[]) {
             }
             /*Poll for changes in stdin or socket*/
             poll(fds,2,-1);
+
             /*If stdin has changed*/
-            if((fds[STDIN_FD].revents & POLLIN)){
+            if((fds[LOCAL].revents & POLLIN)){
                 if(DEBUG){
                     perror("Error 2");
                     fprint_to_output("(client)User input detected\n");
@@ -150,7 +146,7 @@ int main(int argc, char* const argv[]) {
                     /*Clear the buffer*/
                     memset(inBuf,0, LINE_LENGTH);
                     /*Read from the buffer*/
-                    if((-1 == read_from_input(inBuf, LINE_LENGTH))){
+                    if((0 < read_from_input(inBuf, LINE_LENGTH))){
                         stop_windowing();
                         perror("(client)Read from Terminal");
                         exit(EXIT_FAILURE);
@@ -166,7 +162,7 @@ int main(int argc, char* const argv[]) {
                 }
             }
             /*If incoming message*/
-            if(fds[SOCK_FD].revents & POLLIN){
+            if(fds[REMOTE].revents & POLLIN){
                 if(DEBUG){
                     fprint_to_output("(client)Incoming message detected\n");
                     fprint_to_output("Recieving on sock %d inbuf %s", sock);
@@ -210,12 +206,10 @@ int main(int argc, char* const argv[]) {
             printf("Acting as server\n");
         }
         /*Create a socket*/
-        if(-1==(sock = socket(AF_INET, SOCK_STREAM, 0))){
+        if(-1==(lsock = socket(AF_INET, SOCK_STREAM, 0))){
             perror("Server Socket");
             exit(EXIT_FAILURE);
         }
-        /*Set the socket for polling*/
-        fds[SOCK_FD].fd = sock;
 
         /*Attach address*/
         sa.sin_family = AF_INET;
@@ -227,20 +221,30 @@ int main(int argc, char* const argv[]) {
         if(DEBUG){
             printf("Binding...\n");
         }
-        bind(sock, (struct sockaddr*)&sa, sizeof(sa));
+        bind(lsock, (struct sockaddr*)&sa, sizeof(sa));
 
         /*Wait for Connection*/
         if(DEBUG){
             printf("Listening...\n");
         }
-        listen(sock, DEFAULT_BACKLOG);
+        listen(lsock, DEFAULT_BACKLOG);
 
         /*Accept connection*/
         if(DEBUG){
             printf("Accepting...\n");
         }
         len = sizeof(sa);
-        accept(sock, (struct sockaddr*)&sa, &len);
+        sock = accept(lsock, (struct sockaddr*)&lsinfo, &len);
+
+        /*Gather info*/
+        len = sizeof(sinfo);
+        getsockname(sock, (struct sockaddr*)&sinfo, &len);
+
+        /*Info on both sockets*/
+
+
+        /*Set the socket for polling*/
+        fds[REMOTE].fd = sock;
 
         /*Start windowing*/
         if(!(optMask &NOWNDW)){
@@ -256,7 +260,7 @@ int main(int argc, char* const argv[]) {
             poll(fds,2,-1);
 
             /*If user types*/
-            if(fds[STDIN_FD].revents & POLLIN){
+            if(fds[LOCAL].revents & POLLIN){
                 if(DEBUG){
                     printf("From user\n");
                 }
@@ -274,7 +278,7 @@ int main(int argc, char* const argv[]) {
                 }
             }
             /*If there is change in the socket*/
-            if(fds[SOCK_FD].revents & POLLIN){
+            if(fds[REMOTE].revents & POLLIN){
                 if(DEBUG){
                     printf("From Connection\n");
                 }
@@ -298,6 +302,7 @@ int main(int argc, char* const argv[]) {
 
         /*Close sockets*/
         close(sock);
+        close(lsock);
     }
     else{
         printf("You Never should have come here\n");
