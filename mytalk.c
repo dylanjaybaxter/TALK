@@ -79,6 +79,8 @@ int main(int argc, char* const argv[]) {
       }
     }
 
+    set_verbosity(1);
+
     argRemain = argc-optind;
     if(DEBUG){
         printf("argRemain: %d\n", argRemain);
@@ -114,8 +116,9 @@ int main(int argc, char* const argv[]) {
                 fds[SOCK_FD].fd = sock;
                 printf("Connection Established\n");
                 break;
+            }else{
+                close(sock);
             }
-            close(sock);
             curr = curr->ai_next;
         }
         if(curr == NULL){
@@ -218,6 +221,9 @@ int main(int argc, char* const argv[]) {
         listen(sock, DEFAULT_BACKLOG);
 
         /*Accept connection*/
+        if(DEBUG){
+            printf("Accepting...\n");
+        }
         len = sizeof(sa);
         accept(sock, (struct sockaddr*)&sa, &len);
 
