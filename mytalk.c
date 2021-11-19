@@ -85,7 +85,7 @@ int main(int argc, char* const argv[]) {
     argRemain = argc-optind;
     if(DEBUG){
         printf("argRemain: %d\n", argRemain);
-        printf("Options: %d", optMask);
+        printf("Options: %d\n", optMask);
     }
     /*If hostname is included, act as client*/
     if(argRemain == 2){
@@ -125,6 +125,9 @@ int main(int argc, char* const argv[]) {
         /*Turn on windowing*/
         if(!(optMask &NOWNDW)){
             start_windowing();
+        }
+        if(DEBUG){
+            perror("Error 0");
         }
 
         /*Send and recieve loop*/
