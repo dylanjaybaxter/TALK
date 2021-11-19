@@ -115,6 +115,7 @@ int main(int argc, char* const argv[]) {
                 printf("Connection Established\n");
                 break;
             }
+            close(sock);
             curr = curr->ai_next;
         }
         if(curr == NULL){
@@ -128,6 +129,7 @@ int main(int argc, char* const argv[]) {
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
             if(DEBUG){
+                perror("Error check");
                 fprint_to_output("(client)Polling\n");
             }
             poll(fds,2,-1);
