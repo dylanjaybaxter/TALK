@@ -135,6 +135,7 @@ int main(int argc, char* const argv[]) {
             poll(fds,2,-1);
             if((fds[STDIN_FD].revents & POLLIN)){
                 if(DEBUG){
+                    perror("Error 2");
                     fprint_to_output("(client)User input detected\n");
                 }
                 update_input_buffer();
@@ -149,6 +150,9 @@ int main(int argc, char* const argv[]) {
                         fprint_to_output("(client)Sending...\n");
                     }
                     send(sock, inBuf, LINE_LENGTH, 0);
+                }
+                if(DEBUG){
+                    perror("Error 3");
                 }
             }
             if(fds[SOCK_FD].revents & POLLIN){
