@@ -99,7 +99,7 @@ int main(int argc, char* const argv[]) {
             if(DEBUG){
                 printf("Extablishing socket\n");
             }
-            sock = socket(AF_INET,SOCK_STREAM,0);
+            sock = socket(curr->ai_family, curr->ai_protocol,0);
             if(sock == -1){
                 /*Error*/
                 perror("Socket");
