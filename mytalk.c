@@ -304,10 +304,14 @@ int main(int argc, char* const argv[]) {
             /*If user types*/
             if(fds[LOCAL].revents & POLLIN){
                 if(DEBUG){
+                    perror("After poll check");
                     fprint_to_output("User Input\n");
                 }
                 /*Update buffer*/
                 update_input_buffer();
+                if(DEBUG){
+                    perror("After input buffer");
+                }
                 /*If whole line, write message*/
                 if(has_whole_line()){
                     /*Read the line from the buffer*/
@@ -320,6 +324,9 @@ int main(int argc, char* const argv[]) {
                         perror("Send");
                         exit(EXIT_FAILURE);
                     }
+                }
+                if(DEBUG){
+                    perror("After line block");
                 }
             }
             /*If there is change in the socket*/
