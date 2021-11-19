@@ -313,10 +313,10 @@ int main(int argc, char* const argv[]) {
                         exit(EXIT_FAILURE);
                     }
                 }
-                else(
+                else{
                     perror("Recieve");
                     exit(EXIT_FAILURE);
-                )
+                }
             }
         }
         if(DEBUG){
