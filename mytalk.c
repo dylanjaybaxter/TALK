@@ -21,7 +21,7 @@ Description: This file contains main functionality f
 /*Prototypes*/
 init_hint(struct addrinfo* hint);
 
-int int main(int argc, char const *argv[]) {
+int main(int argc, char const *argv[]) {
     /*Parse options*/
     /*Iterate through options */
     uint_8 optMask = 0;
