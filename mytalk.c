@@ -176,7 +176,7 @@ int main(int argc, char* const argv[]) {
                     }
                 }else{
                     stop_windowing();
-                    fprintf("Sock = %d", sock);
+                    printf("Sock = %d", sock);
                     perror("recieve:");
                     exit(EXIT_FAILURE);
                 }
