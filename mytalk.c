@@ -161,11 +161,16 @@ int main(int argc, char* const argv[]) {
                         fprint_to_output("(client)Sending...\n");
                     }
                     /*Send packet*/
-                    send(sock, inBuf, LINE_LENGTH, 0);
+                    if(-1 == send(sock, inBuf, LINE_LENGTH, 0)){
+                        stop_windowing();
+                        perror("Sending");
+                        exit(EXIT_FAILURE);
+                    }
                 }
                 if(DEBUG){
                     perror("Error 3");
                 }
+                fds[LOCAL].revents = 0;
             }
             /*If incoming message*/
             if(fds[REMOTE].revents & POLLIN){
@@ -194,6 +199,7 @@ int main(int argc, char* const argv[]) {
                     perror("recieve:");
                     exit(EXIT_FAILURE);
                 }
+                fds[REMOTE].revents = 0;
             }
         }
         if(DEBUG){
@@ -314,6 +320,8 @@ int main(int argc, char* const argv[]) {
                     }
                 }
                 else{
+                    stop_windowing();
+                    printf("Current sock %d\n", sock);
                     perror("Recieve");
                     exit(EXIT_FAILURE);
                 }
