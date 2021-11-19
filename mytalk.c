@@ -128,38 +128,40 @@ int main(int argc, char* const argv[]) {
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
             if(DEBUG){
-                printf("Polling\n");
+                fprint_to_output("(client)Polling\n");
             }
             poll(fds,2,-1);
             if((fds[STDIN_FD].revents & POLLIN)){
                 if(DEBUG){
-                    fprint_to_output("User input detected\n");
+                    fprint_to_output("(client)User input detected\n");
                 }
                 update_input_buffer();
                 if(has_whole_line()){
                     if((-1 == read_from_input(inBuf, LINE_LENGTH))){
-                        perror("Read from Terminal");
+                        perror("(client)Read from Terminal");
                         exit(EXIT_FAILURE);
                     }
                     if(DEBUG){
-                        fprint_to_output("Sending...\n");
+                        fprint_to_output("(client)Sending...\n");
                     }
                     send(sock, inBuf, LINE_LENGTH, 0);
                 }
             }
             if(fds[SOCK_FD].revents & POLLIN){
                 if(DEBUG){
-                    printf("Incoming message detected\n");
+                    printf("(client)Incoming message detected\n");
                 }
-                if((numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
+                if(-1 != (numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
                     if(DEBUG){
-                        printf("Recieved message of length %d\n", numRead);
+                        printf("(client)Recieved message of length %d\n", numRead);
                         printf("%s\n", inBuf);
                     }
                     if(-1 == write_to_output(inBuf, numRead)){
-                        perror("Write to buffer");
+                        perror("(client)Write to buffer");
                         exit(EXIT_FAILURE);
                     }
+                }else{
+                    perror("recieve:");
                 }
             }
         }
