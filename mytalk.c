@@ -98,7 +98,7 @@ int main(int argc, char* const argv[]) {
         }
         /*Create socket and connect to server*/
         curr = infoptr;
-        if(-1 == (sock = socket(AF_INET, SOCK_STREAM, 0)){
+        if(-1 == (sock = socket(AF_INET, SOCK_STREAM, 0))){
             perror("Socket Creation");
             exit(EXIT_FAILURE);
         }
