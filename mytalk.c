@@ -16,6 +16,7 @@ Description: This file contains main functionality f
 #include <string.h>
 #include <unistd.h>
 #include <poll.h>
+#include "talk.h"
 
 /*Option mask constants*/
 #define VERBOSE 0x01
@@ -25,9 +26,9 @@ Description: This file contains main functionality f
 
 /*Others*/
 #define LINE_LENGTH 256
-#define DEBUG 0
 #define LOCAL 0
 #define REMOTE 1
+#define NUM_FDS 2
 
 /*Prototypes*/
 void init_hint(struct addrinfo* hint);
@@ -55,7 +56,11 @@ int main(int argc, char* const argv[]) {
     struct addrinfo* infoptr;
     struct addrinfo* curr;
     struct addrinfo hint;
+    struct passwd *pwd;
+    char answer[4];
+    char hbuf[NI_MAXHOST];
     struct sockaddr_in sa, lsinfo, sinfo;
+
     /*char locAdd[INET_ADDRSTRLEN], remAdd[INET_ADDRSTRLEN];*/
     init_hint(&hint);
     hint.ai_family = AF_INET;
@@ -79,7 +84,6 @@ int main(int argc, char* const argv[]) {
       /*Flag Verbose*/
       if(opt == 'v'){
          optMask = optMask | VERBOSE;
-         set_verbosity(1);
       }
       /*Flag accept*/
       else if(opt == 'a'){
@@ -92,14 +96,13 @@ int main(int argc, char* const argv[]) {
     }
 
     argRemain = argc-optind;
-    if(DEBUG){
-        perror("Just checking");
+    if(optMask & VERBOSE){
         printf("argRemain: %d\n", argRemain);
-        printf("Options: %d\n", optMask);
+        printf("optMask: %d\n", optMask);
     }
     /*If hostname is included, act as client*/
     if(argRemain == 2){
-        if(DEBUG){
+        if(optMask & VERBOSE){
             printf("Acting as client\n");
         }
         /*Look up peer address*/
@@ -114,8 +117,7 @@ int main(int argc, char* const argv[]) {
         }
 
         while(curr != NULL){
-            if(DEBUG){
-                perror("Just checking");
+            if(optMask & VERBOSE){
                 printf("Connecting socket\n");
             }
             if(-1 != connect(sock,curr->ai_addr, curr->ai_addrlen)){
@@ -123,7 +125,6 @@ int main(int argc, char* const argv[]) {
                 printf("Connection Established\n");
                 break;
             }else{
-                perror("Conection");
                 close(sock);
             }
             curr = curr->ai_next;
@@ -132,47 +133,46 @@ int main(int argc, char* const argv[]) {
             printf("No Connection\n");
             return -1;
         }
-
-        if(DEBUG){
-            perror("Just checking");
+        if(optMask & VERBOSE){
+            printf("Requesting Access...\n");
         }
+        pwd = getpwuid(getuid());
+        if(-1 == send(sock, pwd->pw_name, strlen(pwd->pw_name), 0)){
+            perror("Send uid");
+            exit(EXIT_FAILURE);
+        }
+        if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
+            inBuf[numRead] = '\0';
+        }
+        if(!(strcmp("ok", inBuf))){
+            printf("hostname declined connection\n");
+            exit(EXIT_FAILURE);
+        }
+
         /*Turn on windowing*/
         if(!(optMask &NOWNDW)){
             start_windowing();
         }
-        if(DEBUG){
-            perror("Before loop");
-        }
 
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
-            if(DEBUG){
-                perror("In loop");
+            if(optMask & VERBOSE){
                 fprint_to_output("(client)Polling\n");
             }
             /*Poll for changes in stdin or socket*/
-            if(DEBUG){
-                perror("Before poll");
-            }
-            if((-1 == poll(fds,2,-1))){
+            if((-1 == poll(fds,NUM_FDS,-1))){
                 perror("Polling");
                 exit(EXIT_FAILURE);
-            }
-            if(DEBUG){
-                perror("After poll");
             }
 
             /*If stdin has changed*/
             if((fds[LOCAL].revents & POLLIN)){
-                if(DEBUG){
-                    perror("After check");
+                if(optMask & VERBOSE){
                     fprint_to_output("(client)User input detected\n");
                 }
                 /*Update buffer from stdin*/
                 update_input_buffer();
-                if(DEBUG){
-                    perror("After update buffer");
-                }
+
                 /*If end of line, send to server*/
                 if(has_whole_line()){
                     /*Clear the buffer*/
@@ -184,7 +184,7 @@ int main(int argc, char* const argv[]) {
                         exit(EXIT_FAILURE);
                     }
                     inBuf[numRead] = '\0';
-                    if(DEBUG){
+                    if(optMask & VERBOSE){
                         fprint_to_output("(client)Sending...\n");
                     }
                     /*Send packet*/
@@ -194,30 +194,30 @@ int main(int argc, char* const argv[]) {
                         exit(EXIT_FAILURE);
                     }
                 }
-                if(DEBUG){
-                    perror("After send block");
-                }
+
                 fds[LOCAL].revents = 0;
             }
             /*If incoming message*/
             if(fds[REMOTE].revents & POLLIN){
-                if(DEBUG){
-                    fprint_to_output("(client)Incoming message detected\n");
+                if(optMask & VERBOSE){
+                    fprint_to_output("Incoming message detected\n");
                     fprint_to_output("Recieving on sock %d inbuf %s", sock);
                 }
                 /*Clear buffer*/
                 memset(inBuf,'\0', LINE_LENGTH);
+
                 /*Read from socket*/
                 if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
                     inBuf[numRead] = '\0';
-                    if(DEBUG){
-                        fprint_to_output("(client)Recieved message of length %d\n", numRead);
+                    if(optMask & VERBOSE){
+                        fprint_to_output("Recieved message of length %d\n",
+                         numRead);
                         fprint_to_output("%s\n", inBuf);
                     }
                     /*Write to screen*/
                     if(-1 == write_to_output(inBuf, numRead)){
                         stop_windowing();
-                        perror("(client)Write to buffer");
+                        perror("Write to buffer");
                         exit(EXIT_FAILURE);
                     }
                 }else{
@@ -229,7 +229,7 @@ int main(int argc, char* const argv[]) {
                 fds[REMOTE].revents = 0;
             }
         }
-        if(DEBUG){
+        if(optMask & VERBOSE){
             printf("Closing\n");
         }
         /*Stop windowing*/
@@ -242,7 +242,7 @@ int main(int argc, char* const argv[]) {
 
     /*If not, act as server*/
     else if(argRemain == 1){
-        if(DEBUG){
+        if(optMask & VERBOSE){
             printf("Acting as server\n");
         }
         /*Create a socket*/
@@ -253,12 +253,12 @@ int main(int argc, char* const argv[]) {
 
         /*Attach address*/
         sa.sin_family = AF_INET;
-        port = strtol(argv[1], &end, 10);
+        port = strtol(argv[argc-1], &end, 10);
         sa.sin_port = htons(port);
         sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
         /*Bind the socket to an address*/
-        if(DEBUG){
+        if(optMask & VERBOSE){
             printf("Binding...\n");
         }
         if((-1 == bind(lsock, (struct sockaddr*)&sa, sizeof(sa)))){
@@ -267,7 +267,7 @@ int main(int argc, char* const argv[]) {
         }
 
         /*Wait for Connection*/
-        if(DEBUG){
+        if(optMask & VERBOSE){
             printf("Listening...\n");
         }
         if(-1==listen(lsock, DEFAULT_BACKLOG)){
@@ -275,21 +275,56 @@ int main(int argc, char* const argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        /*Accept connection*/
-        if(DEBUG){
-            printf("Accepting...\n");
-        }
-        len = sizeof(sa);
-        if(-1 == (sock = accept(lsock, (struct sockaddr*)&lsinfo, &len))){
-            perror("Accept");
-            exit(EXIT_FAILURE);
+        /*Wait for a worthy client*/
+        while(1){
+            /*Accept connection*/
+            if(optMask & VERBOSE){
+                printf("Accepting...\n");
+            }
+            len = sizeof(sa);
+            if(-1 == (sock = accept(lsock, (struct sockaddr*)&lsinfo, &len))){
+                perror("Accept");
+                exit(EXIT_FAILURE);
+            }
+
+            /*Gather info*/
+            len = sizeof(sinfo);
+            getsockname(sock, (struct sockaddr*)&sinfo, &len);
+            if(-1 == getnameinfo(&sinfo.sin_addr.s_addr, len,
+                                    hbuf, sizeof(hbuf), Null, 0, 0)){
+                perror("Getnameinfo");
+                exit(EXIT_FAILURE);
+            }
+
+            /*Check username and response*/
+            if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
+                inBuf[numRead] = '\0';
+            }
+            if(!(optMask & ACCEPT){
+                printf("Mytalk request from %s@%s. Accept (y/n)?\n",
+                inBuf, hbuf);
+            }
+            fgets(answer, sizeof(answer)-1, stdin);
+            answer[3] = '\0';
+            if(!(strcmp("yes", answer)) || !(strcmp("y", answer)){
+                strcpy(answer, "ok\0");
+                if(-1 == send(sock, answer, 3, 0)){
+                    perror("Send Response");
+                    exit(EXIT_FAILURE);
+                }
+                break;
+            }
+            else{
+                strcpy(answer, "No\0");
+                if(-1 == send(sock, answer, 3, 0)){
+                    perror("Send Response");
+                    exit(EXIT_FAILURE);
+                }
+                close(sock);
+            }
         }
 
-        /*Gather info*/
-        len = sizeof(sinfo);
-        getsockname(sock, (struct sockaddr*)&sinfo, &len);
 
-        /*Info on both sockets*/
 
 
         /*Set the socket for polling*/
@@ -302,7 +337,7 @@ int main(int argc, char* const argv[]) {
 
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
-            if(DEBUG){
+            if(optMask & VERBOSE){
                 fprint_to_output("Polling...\n");
             }
             /*Poll socket and stdin*/
@@ -313,15 +348,12 @@ int main(int argc, char* const argv[]) {
 
             /*If user types*/
             if(fds[LOCAL].revents & POLLIN){
-                if(DEBUG){
-                    perror("After poll check");
+                if(optMask & VERBOSE){
                     fprint_to_output("User Input\n");
                 }
                 /*Update buffer*/
                 update_input_buffer();
-                if(DEBUG){
-                    perror("After input buffer");
-                }
+
                 /*If whole line, write message*/
                 if(has_whole_line()){
                     /*Read the line from the buffer*/
@@ -336,13 +368,10 @@ int main(int argc, char* const argv[]) {
                         exit(EXIT_FAILURE);
                     }
                 }
-                if(DEBUG){
-                    perror("After line block");
-                }
             }
             /*If there is change in the socket*/
             if(fds[REMOTE].revents & POLLIN){
-                if(DEBUG){
+                if(optMask & VERBOSE){
                     fprint_to_output("From Connection\n");
                 }
                 /*Read from the socket*/
@@ -362,7 +391,7 @@ int main(int argc, char* const argv[]) {
                 }
             }
         }
-        if(DEBUG){
+        if(optMask & VERBOSE){
             printf("Closing...\n");
         }
         /*Stop Windowing*/
