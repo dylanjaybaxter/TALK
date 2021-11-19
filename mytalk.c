@@ -68,6 +68,7 @@ int main(int argc, char* const argv[]) {
       /*Flag Verbose*/
       if(opt == 'v'){
          optMask = optMask | VERBOSE;
+         set_verbosity(1);
       }
       /*Flag accept*/
       else if(opt == 'a'){
@@ -78,8 +79,6 @@ int main(int argc, char* const argv[]) {
           optMask = optMask | NOWNDW;
       }
     }
-
-    set_verbosity(1);
 
     argRemain = argc-optind;
     if(DEBUG){
