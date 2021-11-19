@@ -25,7 +25,7 @@ Description: This file contains main functionality f
 
 /*Others*/
 #define LINE_LENGTH 256
-#define DEBUG 1
+#define DEBUG 0
 #define LOCAL 0
 #define REMOTE 1
 
@@ -178,11 +178,12 @@ int main(int argc, char* const argv[]) {
                     /*Clear the buffer*/
                     memset(inBuf,'\0', LINE_LENGTH);
                     /*Read from the buffer*/
-                    if((-1 ==read_from_input(inBuf, LINE_LENGTH))){
+                    if((-1 ==(numRead = read_from_input(inBuf, LINE_LENGTH)))){
                         stop_windowing();
                         perror("(client)Read from Terminal");
                         exit(EXIT_FAILURE);
                     }
+                    inBuf[numRead] = '\0';
                     if(DEBUG){
                         fprint_to_output("(client)Sending...\n");
                     }
@@ -325,6 +326,7 @@ int main(int argc, char* const argv[]) {
                 if(has_whole_line()){
                     /*Read the line from the buffer*/
                     if(-1 == (numRead = read_from_input(inBuf, LINE_LENGTH))){
+                        inBuf[numRead] = '\0';
                         perror("Read from Terminal");
                         exit(EXIT_FAILURE);
                     }
