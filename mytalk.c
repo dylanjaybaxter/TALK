@@ -124,6 +124,9 @@ int main(int argc, char* const argv[]) {
             return -1;
         }
 
+        if(DEBUG){
+            perror("Just checking");
+        }
         /*Turn on windowing*/
         if(!(optMask &NOWNDW)){
             start_windowing();
