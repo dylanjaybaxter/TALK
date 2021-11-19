@@ -77,8 +77,10 @@ int main(int argc, char* const argv[]) {
       }
     }
 
-    argRemain = optind - argc;
-
+    argRemain = argc-opind;
+    if(DEBUG){
+        printf("argRemain: %d", argRemain);
+    }
     /*If hostname is included, act as client*/
     if(argRemain == 2){
         if(DEBUG){
