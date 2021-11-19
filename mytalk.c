@@ -227,7 +227,10 @@ int main(int argc, char* const argv[]) {
         if(DEBUG){
             printf("Binding...\n");
         }
-        bind(lsock, (struct sockaddr*)&sa, sizeof(sa));
+        if((-1 == bind(lsock, (struct sockaddr*)&sa, sizeof(sa)))){
+            perror("Binding");
+            exit(EXIT_FAILURE);
+        }
 
         /*Wait for Connection*/
         if(DEBUG){
