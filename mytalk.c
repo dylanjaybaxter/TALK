@@ -26,6 +26,8 @@ Description: This file contains main functionality f
 /*Others*/
 #define LINE_LENGTH 256
 #define DEBUG 1
+#define STDIN_FD 0
+#define SOCK_FD 1
 
 /*Prototypes*/
 void init_hint(struct addrinfo* hint);
@@ -53,13 +55,13 @@ int main(int argc, char* const argv[]) {
     /*Polling*/
     struct pollfd fds[2];
     /*Set stdin poll*/
-    fds[0].fd = 1;
-    fds[0].events = POLLIN;
-    fds[0].revents = 0;
+    fds[STDIN_FD].fd = 0;
+    fds[STDIN_FD].events = POLLIN;
+    fds[STDIN_FD].revents = 0;
 
     /*Set socket poll*/
-    fds[1].events = POLLIN;
-    fds[1].revents = 0;
+    fds[SOCK_FD]].events = POLLIN;
+    fds[SOCK_FD]].revents = 0;
 
     /*Search for option -n and assign k if it exsists*/
     while((opt = getopt(argc, argv,"vaN")) != -1){
@@ -79,7 +81,7 @@ int main(int argc, char* const argv[]) {
 
     argRemain = argc-optind;
     if(DEBUG){
-        printf("argRemain: %d", argRemain);
+        printf("argRemain: %d\n", argRemain);
     }
     /*If hostname is included, act as client*/
     if(argRemain == 2){
@@ -109,7 +111,7 @@ int main(int argc, char* const argv[]) {
                 printf("Connecting socket\n");
             }
             if(-1 != connect(sock,curr->ai_addr, curr->ai_addrlen)){
-                fds[1].fd = sock;
+                fds[SOCK_FD]].fd = sock;
                 printf("Connection Established\n");
                 break;
             }
@@ -129,7 +131,7 @@ int main(int argc, char* const argv[]) {
                 printf("Polling\n");
             }
             poll(fds,2,-1);
-            if(fds[0].revents & POLLIN){
+            if((fds[STDIN_FD].revents & POLLIN)&&){
                 if(DEBUG){
                     printf("User input detected\n");
                 }
@@ -142,11 +144,15 @@ int main(int argc, char* const argv[]) {
                     send(sock, inBuf, LINE_LENGTH, 0);
                 }
             }
-            if(fds[1].revents & POLLIN){
+            if(fds[SOCK_FD]].revents & POLLIN){
                 if(DEBUG){
                     printf("Incoming message detected\n");
                 }
                 if((numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
+                    if(DEBUG){
+                        printf("Recieved message of length %d\n", numRead);
+                        printf("%s\n", inBuf);
+                    }
                     if(-1 == write_to_output(inBuf, numRead)){
                         perror("Write to buffer");
                         exit(EXIT_FAILURE);
@@ -174,7 +180,7 @@ int main(int argc, char* const argv[]) {
             perror("Server Socket");
             exit(EXIT_FAILURE);
         }
-        fds[1].fd = sock;
+        fds[SOCK_FD]].fd = sock;
 
         /*Attach address*/
         sa.sin_family = AF_INET;
@@ -203,7 +209,7 @@ int main(int argc, char* const argv[]) {
                 printf("Polling...\n");
             }
             poll(fds,2,-1);
-            if(fds[0].revents & POLLIN){
+            if(fds[STDIN_FD].revents & POLLIN){
                 if(DEBUG){
                     printf("From user\n");
                 }
@@ -216,7 +222,7 @@ int main(int argc, char* const argv[]) {
                     send(sock, inBuf, LINE_LENGTH, 0);
                 }
             }
-            if(fds[1].revents & POLLIN){
+            if(fds[SOCK_FD]].revents & POLLIN){
                 if(DEBUG){
                     printf("From Connection\n");
                 }
