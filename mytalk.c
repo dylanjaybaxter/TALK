@@ -176,7 +176,8 @@ int main(int argc, char* const argv[]) {
                 /*Clear buffer*/
                 memset(inBuf,0, LINE_LENGTH);
                 /*Read from socket*/
-                if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
+                if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
+                    inBuf[numRead] = '\0';
                     if(DEBUG){
                         fprint_to_output("(client)Recieved message of length %d\n", numRead);
                         fprint_to_output("%s\n", inBuf);
@@ -269,7 +270,7 @@ int main(int argc, char* const argv[]) {
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
             if(DEBUG){
-                printf("Polling...\n");
+                fprint_to_output("Polling...\n");
             }
             /*Poll socket and stdin*/
             if((-1 == poll(fds,2,-1))){
@@ -280,7 +281,7 @@ int main(int argc, char* const argv[]) {
             /*If user types*/
             if(fds[LOCAL].revents & POLLIN){
                 if(DEBUG){
-                    printf("From user\n");
+                    fprint_to_output("User Input\n");
                 }
                 /*Update buffer*/
                 update_input_buffer();
@@ -301,10 +302,11 @@ int main(int argc, char* const argv[]) {
             /*If there is change in the socket*/
             if(fds[REMOTE].revents & POLLIN){
                 if(DEBUG){
-                    printf("From Connection\n");
+                    fprint_to_output("From Connection\n");
                 }
                 /*Read from the socket*/
-                if((numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
+                if((numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
+                    inBuf[numRead] = '\0';
                     /*Write the line to output*/
                     if(-1 == write_to_output(inBuf, numRead)){
                         perror("Write to buffer");
