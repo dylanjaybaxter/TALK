@@ -100,10 +100,7 @@ int main(int argc, char* const argv[]) {
             if(DEBUG){
                 printf("Extablishing socket\n");
             }
-            sock = socket(
-                curr->ai_family,
-                curr->ai_socktype,
-                curr->ai_protocol);
+            sock = socket(AF_INET,SOCK_STREAM,0);
             if(sock == -1){
                 /*Error*/
                 perror("Socket");
@@ -135,15 +132,21 @@ int main(int argc, char* const argv[]) {
                 perror("Error 1");
                 fprint_to_output("(client)Polling\n");
             }
+            /*Poll for changes in stdin or socket*/
             poll(fds,2,-1);
+            /*If stdin has changed*/
             if((fds[STDIN_FD].revents & POLLIN)){
                 if(DEBUG){
                     perror("Error 2");
                     fprint_to_output("(client)User input detected\n");
                 }
+                /*Update buffer from stdin*/
                 update_input_buffer();
+                /*If end of line, send to server*/
                 if(has_whole_line()){
+                    /*Clear the buffer*/
                     memset(inBuf,0, LINE_LENGTH);
+                    /*Read from the buffer*/
                     if((-1 == read_from_input(inBuf, LINE_LENGTH))){
                         stop_windowing();
                         perror("(client)Read from Terminal");
@@ -152,23 +155,28 @@ int main(int argc, char* const argv[]) {
                     if(DEBUG){
                         fprint_to_output("(client)Sending...\n");
                     }
+                    /*Send packet*/
                     send(sock, inBuf, LINE_LENGTH, 0);
                 }
                 if(DEBUG){
                     perror("Error 3");
                 }
             }
+            /*If incoming message*/
             if(fds[SOCK_FD].revents & POLLIN){
                 if(DEBUG){
                     fprint_to_output("(client)Incoming message detected\n");
                     fprint_to_output("Recieving on sock %d inbuf %s", sock);
                 }
+                /*Clear buffer*/
                 memset(inBuf,0, LINE_LENGTH);
+                /*Read from socket*/
                 if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
                     if(DEBUG){
                         fprint_to_output("(client)Recieved message of length %d\n", numRead);
                         fprint_to_output("%s\n", inBuf);
                     }
+                    /*Write to screen*/
                     if(-1 == write_to_output(inBuf, numRead)){
                         stop_windowing();
                         perror("(client)Write to buffer");
@@ -202,6 +210,7 @@ int main(int argc, char* const argv[]) {
             perror("Server Socket");
             exit(EXIT_FAILURE);
         }
+        /*Set the socket for polling*/
         fds[SOCK_FD].fd = sock;
 
         /*Attach address*/
@@ -210,6 +219,7 @@ int main(int argc, char* const argv[]) {
         sa.sin_port = htons(port);
         sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
+        /*Bind the socket to an address*/
         if(DEBUG){
             printf("Binding...\n");
         }
@@ -236,25 +246,35 @@ int main(int argc, char* const argv[]) {
             if(DEBUG){
                 printf("Polling...\n");
             }
+            /*Poll socket and stdin*/
             poll(fds,2,-1);
+
+            /*If user types*/
             if(fds[STDIN_FD].revents & POLLIN){
                 if(DEBUG){
                     printf("From user\n");
                 }
+                /*Update buffer*/
                 update_input_buffer();
+                /*If whole line, write message*/
                 if(has_whole_line()){
+                    /*Read the line from the buffer*/
                     if(-1 == read_from_input(inBuf, LINE_LENGTH)){
                         perror("Read from Terminal");
                         exit(EXIT_FAILURE);
                     }
+                    /*Send the read line*/
                     send(sock, inBuf, LINE_LENGTH, 0);
                 }
             }
+            /*If there is change in the socket*/
             if(fds[SOCK_FD].revents & POLLIN){
                 if(DEBUG){
                     printf("From Connection\n");
                 }
+                /*Read from the socket*/
                 if((numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
+                    /*Write the line to output*/
                     if(-1 == write_to_output(inBuf, numRead)){
                         perror("Write to buffer");
                         exit(EXIT_FAILURE);
