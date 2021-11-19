@@ -141,16 +141,19 @@ int main(int argc, char* const argv[]) {
             start_windowing();
         }
         if(DEBUG){
-            perror("Error 0");
+            perror("Before loop");
         }
 
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
             if(DEBUG){
-                perror("Error 1");
+                perror("In loop");
                 fprint_to_output("(client)Polling\n");
             }
             /*Poll for changes in stdin or socket*/
+            if(DEBUG){
+                perror("Before poll");
+            }
             if((-1 == poll(fds,2,-1))){
                 perror("Polling");
                 exit(EXIT_FAILURE);
