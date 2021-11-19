@@ -246,7 +246,10 @@ int main(int argc, char* const argv[]) {
             printf("Accepting...\n");
         }
         len = sizeof(sa);
-        sock = accept(lsock, (struct sockaddr*)&lsinfo, &len);
+        if(-1 == (sock = accept(lsock, (struct sockaddr*)&lsinfo, &len))){
+            perror("Accept");
+            exit(EXIT_FAILURE);
+        }
 
         /*Gather info*/
         len = sizeof(sinfo);
@@ -289,7 +292,10 @@ int main(int argc, char* const argv[]) {
                         exit(EXIT_FAILURE);
                     }
                     /*Send the read line*/
-                    send(sock, inBuf, LINE_LENGTH, 0);
+                    if(-1 == send(sock, inBuf, LINE_LENGTH, 0)){
+                        perror("Send");
+                        exit(EXIT_FAILURE);
+                    }
                 }
             }
             /*If there is change in the socket*/
@@ -305,6 +311,10 @@ int main(int argc, char* const argv[]) {
                         exit(EXIT_FAILURE);
                     }
                 }
+                else(
+                    perror("Recieve");
+                    exit(EXIT_FAILURE);
+                )
             }
         }
         if(DEBUG){
