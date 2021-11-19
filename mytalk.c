@@ -124,7 +124,9 @@ int main(int argc, char* const argv[]) {
         }
 
         /*Turn on windowing*/
-        start_windowing();
+        if(!(optMask &NOWNDW)){
+            start_windowing();
+        }
 
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
@@ -194,8 +196,9 @@ int main(int argc, char* const argv[]) {
             printf("Closing\n");
         }
         /*Stop windowing*/
-        stop_windowing();
-
+        if(!(optMask &NOWNDW)){
+            stop_windowing();
+        }
         /*close sockets*/
         close(sock);
     }
@@ -239,7 +242,9 @@ int main(int argc, char* const argv[]) {
         accept(sock, (struct sockaddr*)&sa, &len);
 
         /*Start windowing*/
-        start_windowing();
+        if(!(optMask &NOWNDW)){
+            start_windowing();
+        }
 
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
@@ -286,7 +291,9 @@ int main(int argc, char* const argv[]) {
             printf("Closing...\n");
         }
         /*Stop Windowing*/
-        stop_windowing();
+        if(!(optMask &NOWNDW)){
+            stop_windowing();
+        }
 
         /*Close sockets*/
         close(sock);
