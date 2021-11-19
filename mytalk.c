@@ -309,7 +309,7 @@ int main(int argc, char* const argv[]) {
     hint->ai_flags = 0;
     hint->ai_family = AF_INET;
     hint->ai_socktype = 0;
-    hint->ai_protocol = 0;
+    hint->ai_protocol = SOCK_STREAM;
     hint->ai_addrlen = 0;
     hint->ai_addr = NULL;
     hint->ai_canonname = NULL;
