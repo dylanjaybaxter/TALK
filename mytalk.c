@@ -218,7 +218,7 @@ int main(int argc, char* const argv[]) {
                 if(DEBUG){
                     printf("From Connection\n");
                 }
-                if((numRead = recieve(sock, inBuf, LINE_LENGTH, 0))){
+                if((numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
                     if(-1 == write_to_output(inBuf, numRead)){
                         perror("Write to buffer");
                         exit(EXIT_FAILURE);
