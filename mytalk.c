@@ -77,7 +77,7 @@ int main(int argc, char* const argv[]) {
       }
     }
 
-    argRemain = argc-opind;
+    argRemain = argc-optind;
     if(DEBUG){
         printf("argRemain: %d", argRemain);
     }
