@@ -178,7 +178,7 @@ int main(int argc, char* const argv[]) {
                     /*Clear the buffer*/
                     memset(inBuf,'\0', LINE_LENGTH);
                     /*Read from the buffer*/
-                    if((0 < read_from_input(inBuf, LINE_LENGTH))){
+                    if((-1 ==read_from_input(inBuf, LINE_LENGTH))){
                         stop_windowing();
                         perror("(client)Read from Terminal");
                         exit(EXIT_FAILURE);
@@ -344,7 +344,7 @@ int main(int argc, char* const argv[]) {
                     fprint_to_output("From Connection\n");
                 }
                 /*Read from the socket*/
-                if((numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
+                if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
                     inBuf[numRead] = '\0';
                     /*Write the line to output*/
                     if(-1 == write_to_output(inBuf, numRead)){
