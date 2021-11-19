@@ -155,15 +155,21 @@ int main(int argc, char* const argv[]) {
                 perror("Polling");
                 exit(EXIT_FAILURE);
             }
+            if(DEBUG){
+                perror("After poll");
+            }
 
             /*If stdin has changed*/
             if((fds[LOCAL].revents & POLLIN)){
                 if(DEBUG){
-                    perror("Error 2");
+                    perror("After check");
                     fprint_to_output("(client)User input detected\n");
                 }
                 /*Update buffer from stdin*/
                 update_input_buffer();
+                if(DEBUG){
+                    perror("After update buffer");
+                }
                 /*If end of line, send to server*/
                 if(has_whole_line()){
                     /*Clear the buffer*/
@@ -185,7 +191,7 @@ int main(int argc, char* const argv[]) {
                     }
                 }
                 if(DEBUG){
-                    perror("Error 3");
+                    perror("After send block");
                 }
                 fds[LOCAL].revents = 0;
             }
