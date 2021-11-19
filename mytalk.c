@@ -137,6 +137,7 @@ int main(int argc, char* const argv[]) {
                 }
                 update_input_buffer();
                 if(has_whole_line()){
+                    memset(inBuf,0, LINE_LENGTH);
                     if((-1 == read_from_input(inBuf, LINE_LENGTH))){
                         perror("(client)Read from Terminal");
                         exit(EXIT_FAILURE);
@@ -150,7 +151,9 @@ int main(int argc, char* const argv[]) {
             if(fds[SOCK_FD].revents & POLLIN){
                 if(DEBUG){
                     printf("(client)Incoming message detected\n");
+                    printf("Recieving on sock %d inbuf %s", sock);
                 }
+                memset(inBuf,0, LINE_LENGTH);
                 if(-1 != (numRead = recv(sock, inBuf, LINE_LENGTH, 0))){
                     if(DEBUG){
                         printf("(client)Recieved message of length %d\n", numRead);
