@@ -99,7 +99,7 @@ int main(int argc, char* const argv[]) {
             if(DEBUG){
                 printf("Extablishing socket\n");
             }
-            sock = socket(curr->ai_family,SOCK_STREAM,curr->ai_protocol);
+            sock = socket(curr->ai_family,curr->ai_socktype,curr->ai_protocol);
             if(sock == -1){
                 /*Error*/
                 perror("Socket");
@@ -112,7 +112,8 @@ int main(int argc, char* const argv[]) {
                 fds[SOCK_FD].fd = sock;
                 printf("Connection Established\n");
                 break;
-            }else{
+            }else
+                perror("Conection");
                 close(sock);
             }
             curr = curr->ai_next;
