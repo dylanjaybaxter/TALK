@@ -7,30 +7,43 @@ Description: This file contains main functionality f
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include<getopt.h>
+#include <getopt.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <string.h>
+#include <unistd.h>
+#include <poll.h>
 
 /*Option mask constants*/
 #define VERBOSE 0x01
 #define ACCEPT 0x02
 #define NOWNDW 0x04
+#define DEFAULT_BACKLOG 100
 
 /*Others*/
 #define LINE_LENGTH 256
 #define DEBUG 1
 
 /*Prototypes*/
-init_hint(struct addrinfo* hint);
+void init_hint(struct addrinfo* hint);
 
-int main(int argc, char const *argv[]) {
+int main(int argc, char* const argv[]) {
     /*Parse options*/
     /*Iterate through options */
-    uint_8 optMask = 0;
+    uint8_t optMask = 0;
     int opt;
+    int sock;
     int argRemain;
+    int port;
+    char* end;
+    socklen_t len;
     struct addrinfo* infoptr;
     struct addrinfo* curr;
     struct addrinfo hint;
-    struct addrinfo_in sa;
+    struct sockaddr_in sa;
     init_hint(&hint);
     hint.ai_family = AF_INET;
 
@@ -64,7 +77,7 @@ int main(int argc, char const *argv[]) {
       }
     }
 
-    argRemain = optInd - argc;
+    argRemain = optind - argc;
 
     /*If hostname is included, act as client*/
     if(argRemain == 2){
@@ -72,11 +85,11 @@ int main(int argc, char const *argv[]) {
             printf("Acting as client\n");
         }
         /*Look up peer address*/
-        if( -1 == getaddrinfo(argv[optInd], argv[opInd+1], &hint, &infoptr)){
+        if( -1 == getaddrinfo(argv[optind], argv[optind+1], &hint, &infoptr)){
             return -1;
         }
         /*Create socket and connect to server*/
-        curr = infoptr
+        curr = infoptr;
         while(curr != NULL){
             if(DEBUG){
                 printf("Extablishing socket\n");
@@ -155,7 +168,7 @@ int main(int argc, char const *argv[]) {
             printf("Acting as server\n");
         }
         /*Create a socket*/
-        if(-1==(sock = socket(AF_INET, SOCK_STREAM, 0)){
+        if(-1==(sock = socket(AF_INET, SOCK_STREAM, 0))){
             perror("Server Socket");
             exit(EXIT_FAILURE);
         }
@@ -163,7 +176,8 @@ int main(int argc, char const *argv[]) {
 
         /*Attach address*/
         sa.sin_family = AF_INET;
-        sa.sin_port = htons(argv[optInd]);
+        port = strtol(argv[1], &end, 10);
+        sa.sin_port = htons(port);
         sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
         if(DEBUG){
@@ -178,7 +192,8 @@ int main(int argc, char const *argv[]) {
         listen(sock, DEFAULT_BACKLOG);
 
         /*Accept connection*/
-        accept(sock, (struct sockaddr*)&sa, sizeof(sa));
+        len = sizeof(sa);
+        accept(sock, (struct sockaddr*)&sa, &len);
 
         /*Send and recieve loop*/
         while(!(has_hit_eof())){
@@ -203,7 +218,7 @@ int main(int argc, char const *argv[]) {
                 if(DEBUG){
                     printf("From Connection\n");
                 }
-                if(numRead = recieve(sock, inBuf, LINE_LENGTH, 0)){
+                if((numRead = recieve(sock, inBuf, LINE_LENGTH, 0))){
                     if(-1 == write_to_output(inBuf, numRead)){
                         perror("Write to buffer");
                         exit(EXIT_FAILURE);
@@ -225,7 +240,7 @@ int main(int argc, char const *argv[]) {
 }
 
 
-init_hint(struct addrinfo* hint){
+ void init_hint(struct addrinfo* hint){
     hint->ai_flags = 0;
     hint->ai_family = AF_INET;
     hint->ai_socktype = 0;
@@ -233,5 +248,5 @@ init_hint(struct addrinfo* hint){
     hint->ai_addrlen = 0;
     hint->ai_addr = NULL;
     hint->ai_canonname = NULL;
-    hint->ai.next = NULL;
+    hint->ai_next = NULL;
 }

@@ -12,6 +12,9 @@ mytalk: mytalk.o
 mytalk.o: mytalk.c
 	$(CC) $(CFLAGS) -I ~pn-cs357/Given/Talk/include -c -o mytalk.o mytalk.c
 
+comp:
+	$(CC) $(CFLAGS) -c -o mytalk.o mytalk.c
+	$(CC) $(CFLAGS) -o mytalk mytalk.o
 clean: mytalk
 	rm mytalk.o
 server: mytalk
