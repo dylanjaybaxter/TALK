@@ -83,6 +83,7 @@ int main(int argc, char* const argv[]) {
     argRemain = argc-optind;
     if(DEBUG){
         printf("argRemain: %d\n", argRemain);
+        printf("Options: %d", optMask);
     }
     /*If hostname is included, act as client*/
     if(argRemain == 2){
