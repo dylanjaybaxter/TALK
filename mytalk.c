@@ -131,15 +131,18 @@ int main(int argc, char* const argv[]) {
                 printf("Polling\n");
             }
             poll(fds,2,-1);
-            if((fds[STDIN_FD].revents & POLLIN)&&){
+            if((fds[STDIN_FD].revents & POLLIN)){
                 if(DEBUG){
-                    printf("User input detected\n");
+                    fprint_to_output("User input detected\n");
                 }
                 update_input_buffer();
                 if(has_whole_line()){
-                    if(-1 == read_from_input(inBuf, LINE_LENGTH)){
+                    if((-1 == read_from_input(inBuf, LINE_LENGTH))){
                         perror("Read from Terminal");
                         exit(EXIT_FAILURE);
+                    }
+                    if(DEBUG){
+                        fprint_to_output("Sending...\n");
                     }
                     send(sock, inBuf, LINE_LENGTH, 0);
                 }
