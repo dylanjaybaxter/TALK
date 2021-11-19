@@ -60,8 +60,8 @@ int main(int argc, char* const argv[]) {
     fds[STDIN_FD].revents = 0;
 
     /*Set socket poll*/
-    fds[SOCK_FD]].events = POLLIN;
-    fds[SOCK_FD]].revents = 0;
+    fds[SOCK_FD].events = POLLIN;
+    fds[SOCK_FD].revents = 0;
 
     /*Search for option -n and assign k if it exsists*/
     while((opt = getopt(argc, argv,"vaN")) != -1){
@@ -111,7 +111,7 @@ int main(int argc, char* const argv[]) {
                 printf("Connecting socket\n");
             }
             if(-1 != connect(sock,curr->ai_addr, curr->ai_addrlen)){
-                fds[SOCK_FD]].fd = sock;
+                fds[SOCK_FD].fd = sock;
                 printf("Connection Established\n");
                 break;
             }
@@ -144,7 +144,7 @@ int main(int argc, char* const argv[]) {
                     send(sock, inBuf, LINE_LENGTH, 0);
                 }
             }
-            if(fds[SOCK_FD]].revents & POLLIN){
+            if(fds[SOCK_FD].revents & POLLIN){
                 if(DEBUG){
                     printf("Incoming message detected\n");
                 }
@@ -180,7 +180,7 @@ int main(int argc, char* const argv[]) {
             perror("Server Socket");
             exit(EXIT_FAILURE);
         }
-        fds[SOCK_FD]].fd = sock;
+        fds[SOCK_FD].fd = sock;
 
         /*Attach address*/
         sa.sin_family = AF_INET;
@@ -222,7 +222,7 @@ int main(int argc, char* const argv[]) {
                     send(sock, inBuf, LINE_LENGTH, 0);
                 }
             }
-            if(fds[SOCK_FD]].revents & POLLIN){
+            if(fds[SOCK_FD].revents & POLLIN){
                 if(DEBUG){
                     printf("From Connection\n");
                 }
