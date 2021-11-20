@@ -148,7 +148,7 @@ int main(int argc, char* const argv[]) {
             inBuf[numRead] = '\0';
         }
         if(strcmp("ok", inBuf)){
-            printf("hostname declined connection\n");
+            printf("%s declined connection with %s\n", argv[argc-2],inBuf);
             exit(EXIT_FAILURE);
         }
         else{
