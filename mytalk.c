@@ -236,7 +236,7 @@ int main(int argc, char* const argv[]) {
                 fds[REMOTE].revents = 0;
             }
         }
-        
+
         fprint_to_output("\n Connection Closed. ^C to terminate\n");
         while((c = getchar()) != -1){
             /*Do nothing*/
@@ -408,6 +408,9 @@ int main(int argc, char* const argv[]) {
                         perror("Write to buffer");
                         exit(EXIT_FAILURE);
                     }
+                }
+                else if(numRead == 0){
+                    break;
                 }
                 else{
                     stop_windowing();
