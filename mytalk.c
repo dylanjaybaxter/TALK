@@ -33,6 +33,7 @@ Description: This file contains main functionality f
 
 /*Prototypes*/
 void init_hint(struct addrinfo* hint);
+void clearStdin(void);
 void start_windowing(void);
 void stop_windowing(void);
 int read_from_input(char* buf, size_t len);
@@ -311,9 +312,10 @@ int main(int argc, char* const argv[]) {
                 inBuf, hbuf);
             }
             memset(answer, '\0', 4);
-            fgets(answer, 3, stdin);
+            fgets(answer, 4, stdin);
+            clearStdin();
             if(optMask & VERBOSE){
-                printf("Answer entered is %s", answer);
+                printf("Answer entered is %s\n", answer);
             }
             if(!(strcmp("yes", answer)) || !(strcmp("y", answer))){
                 strcpy(answer, "ok\0");
@@ -419,6 +421,11 @@ int main(int argc, char* const argv[]) {
     return 0;
 }
 
+void clearStdin(void){
+    while((c = getchar()) != '\n'){
+        /*Do nothing*/
+    }
+}
 
  void init_hint(struct addrinfo* hint){
     hint->ai_flags = 0;
