@@ -291,7 +291,7 @@ int main(int argc, char* const argv[]) {
             /*Gather info*/
             len = sizeof(sinfo);
             getsockname(sock, (struct sockaddr*)&sinfo, &len);
-            if(-1 == getnameinfo(&sinfo.sin_addr, len,
+            if(-1 == getnameinfo((struct sockaddr*)&sinfo, len,
                                     hbuf, sizeof(hbuf), NULL, 0, 0)){
                 perror("Getnameinfo");
                 exit(EXIT_FAILURE);
