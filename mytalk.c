@@ -26,16 +26,16 @@ Description: This file contains main functionality f
 #define DEFAULT_BACKLOG 100
 
 /*Others*/
-#define LINE_LENGTH 8056
+#define LINE_LENGTH 8192
 #define LOCAL 0
 #define REMOTE 1
 #define NUM_FDS 2
 #define PORT_MAX 65535
 #define PORT_MIN 1
+#define PORT_BASE 10
 
 /*Prototypes*/
 void init_hint(struct addrinfo* hint);
-void clearStdin(void);
 
 int main(int argc, char* const argv[]) {
     /*Parse options*/
@@ -65,7 +65,7 @@ int main(int argc, char* const argv[]) {
     int numRead = 0;
 
     /*Polling*/
-    struct pollfd fds[2];
+    struct pollfd fds[NUM_FDS];
     /*Set stdin poll*/
     fds[LOCAL].fd = 0;
     fds[LOCAL].events = POLLIN;
@@ -106,7 +106,7 @@ int main(int argc, char* const argv[]) {
         }
 
         /*Parse and validate port*/
-        port = strtol(argv[argc-1], &end, 10);
+        port = strtol(argv[argc-1], &end, PORT_BASE);
         if((*end != '\0')){
             printf("Port must be a valid positive integer\n");
             printf("Server usage: ./mytalk -vaN <hostname> <port>\n");
@@ -130,13 +130,16 @@ int main(int argc, char* const argv[]) {
             exit(EXIT_FAILURE);
         }
 
+        /*Iterate through addresses until one connects*/
         while(curr != NULL){
             if(optMask & VERBOSE){
                 printf("Connecting socket\n");
             }
             if(-1 != connect(sock,curr->ai_addr, curr->ai_addrlen)){
                 fds[REMOTE].fd = sock;
-                printf("Connection Established\n");
+                if(optMask & VERBOSE){
+                    printf("Connection Established\n");
+                }
                 break;
             }else{
                 close(sock);
@@ -147,9 +150,9 @@ int main(int argc, char* const argv[]) {
             printf("Cannot connect to %s\n", argv[argc-2]);
             return -1;
         }
-        if(optMask & VERBOSE){
-            printf("Waiting for response from %s\n", argv[argc-2]);
-        }
+
+        /*Ask permssion to connect to server*/
+        printf("Waiting for response from %s\n", argv[argc-2]);
         pwd = getpwuid(getuid());
         if(-1 == send(sock, pwd->pw_name, strlen(pwd->pw_name), 0)){
             perror("Send uid");
@@ -159,11 +162,13 @@ int main(int argc, char* const argv[]) {
             inBuf[numRead] = '\0';
         }
         if(strcmp("ok", inBuf)){
-            printf("%s declined connection with %s\n", argv[argc-2],inBuf);
+            printf("%s declined connection.\n", argv[argc-2],inBuf);
             exit(EXIT_FAILURE);
         }
         else{
-            printf("Host Responded %s\n",inBuf);
+            if(optMask & VERBOSE){
+                printf("Host Responded %s\n",inBuf);
+            }
         }
 
         /*Turn on windowing*/
@@ -224,9 +229,9 @@ int main(int argc, char* const argv[]) {
                         exit(EXIT_FAILURE);
                     }
                 }
-
                 fds[LOCAL].revents = 0;
             }
+
             /*If incoming message*/
             if(fds[REMOTE].revents & POLLIN){
                 if(optMask & VERBOSE){
@@ -251,18 +256,20 @@ int main(int argc, char* const argv[]) {
                     }
                 }
                 else if(numRead == 0){
+                    /*Break loop if EOF is recieved*/
                     break;
                 }
                 else{
                     stop_windowing();
-                    printf("Sock = %d", sock);
-                    perror("recieve:");
+                    perror("recieve");
                     exit(EXIT_FAILURE);
                 }
+                /*Clear event flag*/
                 fds[REMOTE].revents = 0;
             }
         }
 
+        /*Inform disconnect and wait for exit*/
         fprint_to_output("\n Connection Closed. ^C to terminate\n");
         while((c = getchar()) != -1){
             /*Do nothing*/
@@ -281,6 +288,7 @@ int main(int argc, char* const argv[]) {
         if(optMask & VERBOSE){
             printf("Acting as server\n");
         }
+
         /*Create a socket*/
         if(-1==(lsock = socket(AF_INET, SOCK_STREAM, 0))){
             perror("Server Socket");
@@ -294,15 +302,16 @@ int main(int argc, char* const argv[]) {
         port = strtol(argv[argc-1], &end, 10);
         if((*end != '\0')){
             printf("Port must be a valid positive integer\n");
-            printf("Server usage: ./mytalk -vaN <hostname> <port>\n");
+            printf("Server usage: ./mytalk -vaN <port>\n");
             exit(EXIT_FAILURE);
         }
         if((port < PORT_MIN) || (port > PORT_MAX)){
             printf("Invalid port.  Must be in range[%d %d]\n",
                 PORT_MIN, PORT_MAX);
-            printf("Server usage: ./mytalk -vaN <hostname> <port>\n");
+            printf("Server usage: ./mytalk -vaN <port>\n");
             exit(EXIT_FAILURE);
         }
+
         /*Attach address cont.*/
         sa.sin_port = htons(port);
         sa.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -339,8 +348,8 @@ int main(int argc, char* const argv[]) {
 
             /*Gather info*/
             len = sizeof(sinfo);
-            getsockname(sock, (struct sockaddr*)&sinfo, &len);
-            if(-1 == getnameinfo((struct sockaddr*)&sinfo, len,
+            getsockname(sock, (struct sockaddr*)&lsinfo, &len);
+            if(-1 == getnameinfo((struct sockaddr*)&lsinfo, len,
                                     hbuf, sizeof(hbuf), NULL, 0, 0)){
                 perror("Getnameinfo");
                 exit(EXIT_FAILURE);
@@ -350,9 +359,12 @@ int main(int argc, char* const argv[]) {
             if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
                 inBuf[numRead] = '\0';
             }
+            /*If accept opt is not set, ask*/
             if(!(optMask & ACCEPT)){
                 printf("Mytalk request from %s@%s. Accept (y/n)?\n",
                 inBuf, hbuf);
+
+                /*Collect Response*/
                 memset(answer, '\0', 4);
                 i=0;
                 while((c = getchar())!= '\n'){
@@ -364,6 +376,8 @@ int main(int argc, char* const argv[]) {
                 if(optMask & VERBOSE){
                     printf("Answer entered is %s\n", answer);
                 }
+
+                /*If yes or y, send ok, otherwise send no*/
                 if(!(strcmp("yes", answer)) || !(strcmp("y", answer))){
                     strcpy(answer, "ok\0");
                     if(-1 == send(sock, answer, 3, 0)){
@@ -381,6 +395,8 @@ int main(int argc, char* const argv[]) {
                     close(sock);
                 }
             }
+
+            /*If accept opt is set, automatically respond ok*/
             else{
                 if(optMask & VERBOSE){
                     printf("Auto-accepting Request from %s@%s\n", inBuf, hbuf);
@@ -462,6 +478,7 @@ int main(int argc, char* const argv[]) {
                         exit(EXIT_FAILURE);
                     }
                 }
+                /*Exit loop if EOF signal is recieved*/
                 else if(numRead == 0){
                     break;
                 }
@@ -473,7 +490,7 @@ int main(int argc, char* const argv[]) {
                 }
             }
         }
-
+        /*Indicate end of signal*/
         fprint_to_output("\n Connection Closed. ^C to terminate\n");
         while((c = getchar()) != -1){
             /*Do nothing*/
@@ -489,19 +506,16 @@ int main(int argc, char* const argv[]) {
         close(lsock);
     }
     else{
-        printf("You Never should have come here\n");
-        /*Error!*/
+        /*Bad usage*/
+        printf("Invalid format\n");
+        printf("Server usage: ./mytalk -vaN <port>\n");
+        printf("Client usage: ./mytalk -vaN <hostname> <port>\n");
+        exit(EXIT_FAILURE);
     }
     return 0;
 }
 
-void clearStdin(void){
-    int c;
-    while((c = getchar()) != '\n'){
-        /*Do nothing*/
-    }
-}
-
+/*Initialize hint struct for this specific assignment*/
  void init_hint(struct addrinfo* hint){
     hint->ai_flags = 0;
     hint->ai_family = AF_INET;

@@ -20,7 +20,7 @@ clean: mytalk
 server: mytalk
 	./mytalk hoster
 client: mytalk
-	./mytalk hoster 1025
+	./mytalk hoster dy1234
 valgrind: timit
 	valgrind -s --leak-check=full --track-origins=yes --show-leak-kinds=all \
-	./timeit 3
+	./mytalk 1234
