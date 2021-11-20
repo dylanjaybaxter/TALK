@@ -30,6 +30,8 @@ Description: This file contains main functionality f
 #define LOCAL 0
 #define REMOTE 1
 #define NUM_FDS 2
+#define PORT_MAX 65535
+#define PORT_MIN 1
 
 /*Prototypes*/
 void init_hint(struct addrinfo* hint);
@@ -98,18 +100,36 @@ int main(int argc, char* const argv[]) {
       }
     }
 
+    /*Compute Remaining arguments*/
     argRemain = argc-optind;
     if(optMask & VERBOSE){
         printf("argRemain: %d\n", argRemain);
         printf("optMask: %d\n", optMask);
     }
-    /*If hostname is included, act as client*/
+
+
+    /*-----------------If hostname is included, act as client----------------*/
     if(argRemain == 2){
         if(optMask & VERBOSE){
             printf("Acting as client\n");
         }
+
+        /*Parse and validate port*/
+        port = strtol(argv[argc-1], &end, 10);
+        if((*end != '\0')){
+            printf("Port must be a valid positive integer\n");
+            printf("Server usage: ./mytalk -vaN <hostname> <port>\n");
+            exit(EXIT_FAILURE);
+        }
+        if((port < PORT_MIN) || (port > PORT_MAX)){
+            printf("Invalid port.  Must be in range[%d %d]\n",
+                PORT_MIN, PORT_MAX);
+            printf("Server usage: ./mytalk -vaN <hostname> <port>\n");
+            exit(EXIT_FAILURE);
+        }
+
         /*Look up peer address*/
-        if( -1 == getaddrinfo(argv[optind], argv[optind+1], &hint, &infoptr)){
+        if( -1 == getaddrinfo(argv[optind], port, &hint, &infoptr)){
             return -1;
         }
         /*Create socket and connect to server*/
@@ -133,7 +153,7 @@ int main(int argc, char* const argv[]) {
             curr = curr->ai_next;
         }
         if(curr == NULL){
-            printf("No Connection\n");
+            printf("Cannot connect to %s\n", argv[argc-2]);
             return -1;
         }
         if(optMask & VERBOSE){
@@ -255,6 +275,7 @@ int main(int argc, char* const argv[]) {
         fprint_to_output("\n Connection Closed. ^C to terminate\n");
         while((c = getchar()) != -1){
             /*Do nothing*/
+            putchar(c);
         }
         /*Stop windowing*/
         if(!(optMask &NOWNDW)){
@@ -264,7 +285,7 @@ int main(int argc, char* const argv[]) {
         close(sock);
     }
 
-    /*If not, act as server*/
+    /*--------------------If not, act as server-----------------------------*/
     else if(argRemain == 1){
         if(optMask & VERBOSE){
             printf("Acting as server\n");
@@ -277,7 +298,21 @@ int main(int argc, char* const argv[]) {
 
         /*Attach address*/
         sa.sin_family = AF_INET;
+
+        /*Parse and validate port*/
         port = strtol(argv[argc-1], &end, 10);
+        if((*end != '\0')){
+            printf("Port must be a valid positive integer\n");
+            printf("Server usage: ./mytalk -vaN <hostname> <port>\n");
+            exit(EXIT_FAILURE);
+        }
+        if((port < PORT_MIN) || (port > PORT_MAX)){
+            printf("Invalid port.  Must be in range[%d %d]\n",
+                PORT_MIN, PORT_MAX);
+            printf("Server usage: ./mytalk -vaN <hostname> <port>\n");
+            exit(EXIT_FAILURE);
+        }
+        /*Attach address cont.*/
         sa.sin_port = htons(port);
         sa.sin_addr.s_addr = htonl(INADDR_ANY);
 
@@ -451,6 +486,7 @@ int main(int argc, char* const argv[]) {
         fprint_to_output("\n Connection Closed. ^C to terminate\n");
         while((c = getchar()) != -1){
             /*Do nothing*/
+            putchar(c);
         }
         /*Stop Windowing*/
         if(!(optMask &NOWNDW)){
