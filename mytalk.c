@@ -236,7 +236,7 @@ int main(int argc, char* const argv[]) {
             if(fds[REMOTE].revents & POLLIN){
                 if(optMask & VERBOSE){
                     fprint_to_output("Incoming message detected\n");
-                    fprint_to_output("Recieving on sock %d inbuf %s", sock);
+                    fprint_to_output("Recieving on sock %d", sock);
                 }
                 /*Clear buffer*/
                 memset(inBuf,'\0', LINE_LENGTH);
