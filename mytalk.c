@@ -137,7 +137,7 @@ int main(int argc, char* const argv[]) {
             return -1;
         }
         if(optMask & VERBOSE){
-            printf("Requesting Access...\n");
+            printf("Waiting for response from %s\n", argv[argc-2]);
         }
         pwd = getpwuid(getuid());
         if(-1 == send(sock, pwd->pw_name, strlen(pwd->pw_name), 0)){
@@ -165,7 +165,7 @@ int main(int argc, char* const argv[]) {
         fds[REMOTE].revents = 0;
         while(!(has_hit_eof())){
             if(optMask & VERBOSE){
-                fprint_to_output("(client)Polling\n");
+                fprint_to_output("Polling...\n");
             }
             /*Poll for changes in stdin or socket*/
             if((-1 == poll(fds,NUM_FDS,-1))){
@@ -176,7 +176,7 @@ int main(int argc, char* const argv[]) {
             /*If stdin has changed*/
             if((fds[LOCAL].revents & POLLIN)){
                 if(optMask & VERBOSE){
-                    fprint_to_output("(client)User input detected\n");
+                    fprint_to_output("User input detected\n");
                 }
                 /*Update buffer from stdin*/
                 update_input_buffer();
@@ -188,12 +188,12 @@ int main(int argc, char* const argv[]) {
                     /*Read from the buffer*/
                     if((-1 ==(numRead = read_from_input(inBuf, LINE_LENGTH)))){
                         stop_windowing();
-                        perror("(client)Read from Terminal");
+                        perror("Read from Terminal");
                         exit(EXIT_FAILURE);
                     }
                     inBuf[numRead] = '\0';
                     if(optMask & VERBOSE){
-                        fprint_to_output("(client)Sending...\n");
+                        fprint_to_output("Sending...\n");
                     }
                     /*Send packet*/
                     if(-1 == send(sock, inBuf, numRead, 0)){
@@ -236,8 +236,10 @@ int main(int argc, char* const argv[]) {
                 fds[REMOTE].revents = 0;
             }
         }
-        if(optMask & VERBOSE){
-            printf("Closing\n");
+        
+        fprint_to_output("\n Connection Closed. ^C to terminate\n");
+        while((c = getchar()) != -1){
+            /*Do nothing*/
         }
         /*Stop windowing*/
         if(!(optMask &NOWNDW)){
@@ -339,7 +341,9 @@ int main(int argc, char* const argv[]) {
                 }
             }
             else{
-                printf("Auto-accepting Request from %s@%s\n", inBuf, hbuf);
+                if(optMask & VERBOSE){
+                    printf("Auto-accepting Request from %s@%s\n", inBuf, hbuf);
+                }
                 strcpy(answer, "ok\0");
                 if(-1 == send(sock, answer, 3, 0)){
                     perror("Send Response");
@@ -413,8 +417,10 @@ int main(int argc, char* const argv[]) {
                 }
             }
         }
-        if(optMask & VERBOSE){
-            printf("Closing...\n");
+
+        fprint_to_output("\n Connection Closed. ^C to terminate\n");
+        while((c = getchar()) != -1){
+            /*Do nothing*/
         }
         /*Stop Windowing*/
         if(!(optMask &NOWNDW)){
