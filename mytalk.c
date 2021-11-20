@@ -145,7 +145,7 @@ int main(int argc, char* const argv[]) {
         if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
             inBuf[numRead] = '\0';
         }
-        if(!(strcmp("ok", inBuf))){
+        if(strcmp("ok", inBuf)){
             printf("hostname declined connection\n");
             exit(EXIT_FAILURE);
         }
@@ -312,6 +312,9 @@ int main(int argc, char* const argv[]) {
             }
             fgets(answer, sizeof(answer)-1, stdin);
             answer[3] = '\0';
+            if(optMask & VERBOSE){
+                printf("Answer entered is %s", answer);
+            }
             if(!(strcmp("yes", answer)) || !(strcmp("y", answer))){
                 strcpy(answer, "ok\0");
                 if(-1 == send(sock, answer, 3, 0)){
@@ -321,7 +324,7 @@ int main(int argc, char* const argv[]) {
                 break;
             }
             else{
-                strcpy(answer, "No\0");
+                strcpy(answer, "no\0");
                 if(-1 == send(sock, answer, 3, 0)){
                     perror("Send Response");
                     exit(EXIT_FAILURE);
