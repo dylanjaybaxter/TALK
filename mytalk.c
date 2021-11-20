@@ -183,6 +183,12 @@ int main(int argc, char* const argv[]) {
 
                 /*Check for EOF*/
                 if(has_hit_eof()){
+                    /*Stop windowing*/
+                    if(!(optMask &NOWNDW)){
+                        stop_windowing();
+                    }
+                    /*close sockets*/
+                    close(sock);
                     return 0;
                 }
 
@@ -391,6 +397,13 @@ int main(int argc, char* const argv[]) {
 
                 /*Check for EOF*/
                 if(has_hit_eof()){
+                    /*Stop Windowing*/
+                    if(!(optMask &NOWNDW)){
+                        stop_windowing();
+                    }
+                    /*Close sockets*/
+                    close(sock);
+                    close(lsock);
                     return 0;
                 }
 
