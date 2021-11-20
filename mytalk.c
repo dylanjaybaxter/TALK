@@ -310,19 +310,36 @@ int main(int argc, char* const argv[]) {
             if(!(optMask & ACCEPT)){
                 printf("Mytalk request from %s@%s. Accept (y/n)?\n",
                 inBuf, hbuf);
-            }
-            memset(answer, '\0', 4);
-            i=0;
-            while((c = getchar())!= '\n'){
-                if(i<3){
-                    answer[i]=c;
-                    i++;
+                memset(answer, '\0', 4);
+                i=0;
+                while((c = getchar())!= '\n'){
+                    if(i<3){
+                        answer[i]=c;
+                        i++;
+                    }
+                }
+                if(optMask & VERBOSE){
+                    printf("Answer entered is %s\n", answer);
+                }
+                if(!(strcmp("yes", answer)) || !(strcmp("y", answer))){
+                    strcpy(answer, "ok\0");
+                    if(-1 == send(sock, answer, 3, 0)){
+                        perror("Send Response");
+                        exit(EXIT_FAILURE);
+                    }
+                    break;
+                }
+                else{
+                    strcpy(answer, "no\0");
+                    if(-1 == send(sock, answer, 3, 0)){
+                        perror("Send Response");
+                        exit(EXIT_FAILURE);
+                    }
+                    close(sock);
                 }
             }
-            if(optMask & VERBOSE){
-                printf("Answer entered is %s\n", answer);
-            }
-            if(!(strcmp("yes", answer)) || !(strcmp("y", answer))){
+            else{
+                printf("Auto-accepting Request from %s@%s\n", inBuf, hbuf);
                 strcpy(answer, "ok\0");
                 if(-1 == send(sock, answer, 3, 0)){
                     perror("Send Response");
@@ -330,18 +347,7 @@ int main(int argc, char* const argv[]) {
                 }
                 break;
             }
-            else{
-                strcpy(answer, "no\0");
-                if(-1 == send(sock, answer, 3, 0)){
-                    perror("Send Response");
-                    exit(EXIT_FAILURE);
-                }
-                close(sock);
-            }
         }
-
-
-
 
         /*Set the socket for polling*/
         fds[REMOTE].fd = sock;
