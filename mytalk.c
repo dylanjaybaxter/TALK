@@ -310,8 +310,8 @@ int main(int argc, char* const argv[]) {
                 printf("Mytalk request from %s@%s. Accept (y/n)?\n",
                 inBuf, hbuf);
             }
-            fgets(answer, sizeof(answer)-1, stdin);
-            answer[3] = '\0';
+            memeset(answer, '\0', 4);
+            fgets(answer, 3, stdin);
             if(optMask & VERBOSE){
                 printf("Answer entered is %s", answer);
             }
