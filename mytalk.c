@@ -162,7 +162,7 @@ int main(int argc, char* const argv[]) {
             inBuf[numRead] = '\0';
         }
         if(strcmp("ok", inBuf)){
-            printf("%s declined connection.\n", argv[argc-2],inBuf);
+            printf("%s declined connection.\n", argv[argc-2]);
             exit(EXIT_FAILURE);
         }
         else{
