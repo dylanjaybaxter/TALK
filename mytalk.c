@@ -422,6 +422,7 @@ int main(int argc, char* const argv[]) {
 }
 
 void clearStdin(void){
+    int c;
     while((c = getchar()) != '\n'){
         /*Do nothing*/
     }
