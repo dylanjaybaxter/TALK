@@ -129,7 +129,7 @@ int main(int argc, char* const argv[]) {
         }
 
         /*Look up peer address*/
-        if( -1 == getaddrinfo(argv[optind], port, &hint, &infoptr)){
+        if( -1 == getaddrinfo(argv[optind], argv[argc-1], &hint, &infoptr)){
             return -1;
         }
         /*Create socket and connect to server*/
