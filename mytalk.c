@@ -163,7 +163,7 @@ int main(int argc, char* const argv[]) {
         /*Send and recieve loop*/
         fds[LOCAL].revents = 0;
         fds[REMOTE].revents = 0;
-        while(!(has_hit_eof())){
+        while(1){
             if(optMask & VERBOSE){
                 fprint_to_output("Polling...\n");
             }
@@ -180,6 +180,11 @@ int main(int argc, char* const argv[]) {
                 }
                 /*Update buffer from stdin*/
                 update_input_buffer();
+
+                /*Check for EOF*/
+                if(has_hit_eof()){
+                    return 0;
+                }
 
                 /*If end of line, send to server*/
                 if(has_whole_line()){
@@ -227,7 +232,11 @@ int main(int argc, char* const argv[]) {
                         perror("Write to buffer");
                         exit(EXIT_FAILURE);
                     }
-                }else{
+                }
+                else if(numRead == 0){
+                    break;
+                }
+                else{
                     stop_windowing();
                     printf("Sock = %d", sock);
                     perror("recieve:");
@@ -362,7 +371,7 @@ int main(int argc, char* const argv[]) {
         }
 
         /*Send and recieve loop*/
-        while(!(has_hit_eof())){
+        while(1){
             if(optMask & VERBOSE){
                 fprint_to_output("Polling...\n");
             }
@@ -379,6 +388,11 @@ int main(int argc, char* const argv[]) {
                 }
                 /*Update buffer*/
                 update_input_buffer();
+
+                /*Check for EOF*/
+                if(has_hit_eof()){
+                    return 0;
+                }
 
                 /*If whole line, write message*/
                 if(has_whole_line()){
