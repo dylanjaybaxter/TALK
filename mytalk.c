@@ -147,8 +147,8 @@ int main(int argc, char* const argv[]) {
             curr = curr->ai_next;
         }
         if(curr == NULL){
-            printf("Cannot connect to %s\n", argv[argc-2]);
-            return -1;
+            perror("Connect");
+            exit(EXIT_FAILURE);
         }
 
         /*Ask permssion to connect to server*/
