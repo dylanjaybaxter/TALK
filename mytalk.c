@@ -53,6 +53,7 @@ int main(int argc, char* const argv[]) {
     int lsock;
     int argRemain;
     int port;
+    int i;
     char* end;
     socklen_t len;
     struct addrinfo* infoptr;
@@ -219,7 +220,6 @@ int main(int argc, char* const argv[]) {
                     if(optMask & VERBOSE){
                         fprint_to_output("Recieved message of length %d\n",
                          numRead);
-                        fprint_to_output("%s\n", inBuf);
                     }
                     /*Write to screen*/
                     if(-1 == write_to_output(inBuf, numRead)){
@@ -312,7 +312,13 @@ int main(int argc, char* const argv[]) {
                 inBuf, hbuf);
             }
             memset(answer, '\0', 4);
-            fgets(answer, 4, stdin);
+            i=0;
+            while((c = getchar())!= '\n'){
+                if(i<3){
+                    answer[i]=c;
+                    i++;
+                }
+            }
             clearStdin();
             if(optMask & VERBOSE){
                 printf("Answer entered is %s\n", answer);
