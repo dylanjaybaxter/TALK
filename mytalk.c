@@ -149,6 +149,9 @@ int main(int argc, char* const argv[]) {
             printf("hostname declined connection\n");
             exit(EXIT_FAILURE);
         }
+        else{
+            printf("Host Responded %s\n",inBuf);
+        }
 
         /*Turn on windowing*/
         if(!(optMask &NOWNDW)){
@@ -156,6 +159,8 @@ int main(int argc, char* const argv[]) {
         }
 
         /*Send and recieve loop*/
+        fds[LOCAL].revents = 0;
+        fds[REMOTE].revents = 0;
         while(!(has_hit_eof())){
             if(optMask & VERBOSE){
                 fprint_to_output("(client)Polling\n");
