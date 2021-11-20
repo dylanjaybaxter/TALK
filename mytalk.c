@@ -291,7 +291,7 @@ int main(int argc, char* const argv[]) {
             /*Gather info*/
             len = sizeof(sinfo);
             getsockname(sock, (struct sockaddr*)&sinfo, &len);
-            if(-1 == getnameinfo(&sinfo.sin_addr.s_addr, len,
+            if(-1 == getnameinfo(&sinfo.sin_addr, len,
                                     hbuf, sizeof(hbuf), NULL, 0, 0)){
                 perror("Getnameinfo");
                 exit(EXIT_FAILURE);
@@ -307,7 +307,7 @@ int main(int argc, char* const argv[]) {
             }
             fgets(answer, sizeof(answer)-1, stdin);
             answer[3] = '\0';
-            if(!(strcmp("yes", answer)) || !(strcmp("y", answer)){
+            if(!(strcmp("yes", answer)) || !(strcmp("y", answer))){
                 strcpy(answer, "ok\0");
                 if(-1 == send(sock, answer, 3, 0)){
                     perror("Send Response");
