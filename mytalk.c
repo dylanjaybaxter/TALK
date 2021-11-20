@@ -53,7 +53,7 @@ int main(int argc, char* const argv[]) {
     int lsock;
     int argRemain;
     int port;
-    int i;
+    int i, c;
     char* end;
     socklen_t len;
     struct addrinfo* infoptr;
