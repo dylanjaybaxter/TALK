@@ -16,6 +16,7 @@ Description: This file contains main functionality f
 #include <string.h>
 #include <unistd.h>
 #include <poll.h>
+#include <pwd.h>
 #include "talk.h"
 
 /*Option mask constants*/
@@ -291,7 +292,7 @@ int main(int argc, char* const argv[]) {
             len = sizeof(sinfo);
             getsockname(sock, (struct sockaddr*)&sinfo, &len);
             if(-1 == getnameinfo(&sinfo.sin_addr.s_addr, len,
-                                    hbuf, sizeof(hbuf), Null, 0, 0)){
+                                    hbuf, sizeof(hbuf), NULL, 0, 0)){
                 perror("Getnameinfo");
                 exit(EXIT_FAILURE);
             }
@@ -300,7 +301,7 @@ int main(int argc, char* const argv[]) {
             if(0 < (numRead = recv(sock, inBuf, LINE_LENGTH-1, 0))){
                 inBuf[numRead] = '\0';
             }
-            if(!(optMask & ACCEPT){
+            if(!(optMask & ACCEPT)){
                 printf("Mytalk request from %s@%s. Accept (y/n)?\n",
                 inBuf, hbuf);
             }
