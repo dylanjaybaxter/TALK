@@ -319,7 +319,6 @@ int main(int argc, char* const argv[]) {
                     i++;
                 }
             }
-            clearStdin();
             if(optMask & VERBOSE){
                 printf("Answer entered is %s\n", answer);
             }
