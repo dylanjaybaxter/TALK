@@ -26,7 +26,7 @@ Description: This file contains main functionality f
 #define DEFAULT_BACKLOG 100
 
 /*Others*/
-#define LINE_LENGTH 256
+#define LINE_LENGTH 8056
 #define LOCAL 0
 #define REMOTE 1
 #define NUM_FDS 2
@@ -36,15 +36,6 @@ Description: This file contains main functionality f
 /*Prototypes*/
 void init_hint(struct addrinfo* hint);
 void clearStdin(void);
-void start_windowing(void);
-void stop_windowing(void);
-int read_from_input(char* buf, size_t len);
-int write_to_output(const char* buf, size_t len);
-int fprint_to_output(const char *fmt, ...);
-void update_input_buffer(void);
-int has_whole_line(void);
-int has_hit_eof(void);
-int set_verbosity(int level);
 
 int main(int argc, char* const argv[]) {
     /*Parse options*/
