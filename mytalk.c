@@ -273,7 +273,6 @@ int main(int argc, char* const argv[]) {
         fprint_to_output("\n Connection Closed. ^C to terminate\n");
         while((c = getchar()) != -1){
             /*Do nothing*/
-            putchar(c);
         }
         /*Stop windowing*/
         if(!(optMask &NOWNDW)){
@@ -361,7 +360,7 @@ int main(int argc, char* const argv[]) {
             }
             /*If accept opt is not set, ask*/
             if(!(optMask & ACCEPT)){
-                printf("Mytalk request from %s@%s. Accept (y/n)?\n",
+                printf("Mytalk request from %s@%s. Accept (y/n)? ",
                 inBuf, hbuf);
 
                 /*Collect Response*/
@@ -494,7 +493,6 @@ int main(int argc, char* const argv[]) {
         fprint_to_output("\n Connection Closed. ^C to terminate\n");
         while((c = getchar()) != -1){
             /*Do nothing*/
-            putchar(c);
         }
         /*Stop Windowing*/
         if(!(optMask &NOWNDW)){
